@@ -18,7 +18,7 @@ export async function signUp(req, res) {
 
     } catch (error) {
         console.error('Erro ao inserir usuário no banco de dados:', error.message);
-        res.status(500).send({ message: 'Ocorreu um erro ao processar o cadastro.' });
+        res.status(500).send({ message: error.message });
     };
 };
 
@@ -39,6 +39,10 @@ export async function signIn(req, res) {
         };
 
         const token = uuid();
+        const userId = user.rows[0].id;
+        console.log(userId);
+
+        await db.query(`INSERT INTO sessions (token, "userId") VALUES ($1, $2)`, [token, userId]);
 
         res.status(200).send({ token: token });
 
