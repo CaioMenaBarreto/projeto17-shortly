@@ -37,7 +37,6 @@ export async function getUrlId(req, res) {
     try {
 
         const urls = await db.query(`SELECT * FROM urls WHERE id = $1;`, [id]);
-        console.log(urls.rows[0], id);
 
         if (urls.rows.length === 0) {
             return res.status(404).send("ShortUrl inexistente.");

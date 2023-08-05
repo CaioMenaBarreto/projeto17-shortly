@@ -30,3 +30,36 @@ export async function getUserById(req, res) {
     }
 }
 
+export async function getRanking(req, res) {
+    try {
+        const rankingQuery = await db.query(`
+        SELECT u.id, u.username AS "name", COALESCE(SUM(url.visits), 0) AS "visitCount", COUNT(url.id) AS "linksCount"
+        FROM users AS u
+        LEFT JOIN urls AS url ON u.id = url."userId"
+        GROUP BY u.id, u.username
+        ORDER BY COALESCE(SUM(url.visits), 0) DESC
+        LIMIT 10;
+      `);
+
+        const rankingUsers = rankingQuery.rows.map((row) => ({
+            id: row.id,
+            name: row.name,
+            visitCount: row.visitCount,
+            linksCount: row.linksCount
+        }));
+
+        for (const user of rankingUsers) {
+            await db.query(
+                `INSERT INTO ranking (id, name, "visitCount", "linksCount") VALUES ($1, $2, $3, $4);`,
+                [user.id, user.name, user.visitCount, user.linksCount]
+            );
+        };
+
+        res.status(200).send(rankingUsers);
+    } catch (error) {
+        console.log('Erro ao pegar informações do ranking:', error.message);
+        res.status(500).send({ message: error.message });
+    };
+};
+
+
