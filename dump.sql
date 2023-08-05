@@ -28,7 +28,8 @@ CREATE TABLE public.ranking (
     id integer NOT NULL,
     name text NOT NULL,
     "linksCount" integer DEFAULT 0 NOT NULL,
-    "visitCount" integer DEFAULT 0 NOT NULL
+    "visitCount" integer DEFAULT 0 NOT NULL,
+    "createdAt" timestamp without time zone DEFAULT now() NOT NULL
 );
 
 
@@ -183,8 +184,8 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 -- Data for Name: ranking; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.ranking VALUES (2, 'Caio', 1, 14);
-INSERT INTO public.ranking VALUES (1, 'João', 13, 2);
+INSERT INTO public.ranking VALUES (2, 'Caio', 1, 14, '2023-08-05 02:56:09.281088');
+INSERT INTO public.ranking VALUES (1, 'João', 13, 2, '2023-08-05 02:56:09.281088');
 
 
 --
