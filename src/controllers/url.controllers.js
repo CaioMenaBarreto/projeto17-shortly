@@ -75,3 +75,38 @@ export async function getUrlOpen(req, res) {
         res.status(500).send({ message: error.message });
     }
 }
+
+export async function deleteById(req, res) {
+    const { id } = req.params;
+    let token = req.header('Authorization').replace('Bearer ', '');
+
+    token = token.replace(/"/g, '');
+
+    if (!token) {
+        return res.status(401).send({ error: 'Token de autenticação ausente ou inválido.' });
+    };
+
+    try {
+        const userQuery = await db.query(`SELECT * FROM sessions WHERE token = $1;`, [token]);
+        const userId = userQuery.rows[0].userId;
+
+        const urlQuery = await db.query(`SELECT * FROM urls WHERE id = $1;`, [id]);
+        const urlData = urlQuery.rows[0];
+
+        if(!urlData){
+            return res.status(404).send("ShortUrl inexistente.");
+        };
+
+        if(userId !== urlData.userId) {
+            return res.status(401).send("Essa shortUrl pertence a outro usuário.")
+        }
+
+        await db.query(`DELETE FROM urls WHERE id = $1;`, [id]);
+
+        res.sendStatus(204);
+
+    } catch(error) {
+        console.log('Erro ao deletar uma Url:', error.message);
+        res.status(500).send({ message: error.message });
+    }
+}
