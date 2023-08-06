@@ -33,7 +33,7 @@ export async function getUserById(req, res) {
             "visitCount": visitsTotal.rows[0].visitCount,
             "shortenedUrls": shortenedUrls
         };
-        
+
 
         console.log(result);
 
@@ -64,10 +64,23 @@ export async function getRanking(req, res) {
         }));
 
         for (const user of rankingUsers) {
-            await db.query(
-                `INSERT INTO ranking (id, name, "visitCount", "linksCount") VALUES ($1, $2, $3, $4);`,
-                [user.id, user.name, user.visitCount, user.linksCount]
+            const existingUser = await db.query(
+                `SELECT * FROM ranking WHERE id = $1;`,
+                [user.id]
             );
+
+            if (existingUser.rows.length > 0) {
+                await db.query(
+                    `UPDATE ranking SET "visitCount" = $1, "linksCount" = $2 WHERE id = $3;`,
+                    [user.visitCount, user.linksCount, user.id]
+                );
+            } else {
+                await db.query(
+                    `INSERT INTO ranking (id, name, "visitCount", "linksCount")
+                     VALUES ($1, $2, $3, $4);`,
+                    [user.id, user.name, user.visitCount, user.linksCount]
+                );
+            }
         };
 
         res.status(200).send(rankingUsers);
