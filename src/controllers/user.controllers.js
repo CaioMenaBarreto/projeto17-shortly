@@ -5,11 +5,16 @@ export async function getUserById(req, res) {
     token = token.replace(/"/g, '');
 
     if (!token) {
-        return res.status(401).send({ error: 'Token de autenticação ausente ou inválido.' });
+        return res.status(401).send({ error: 'Token de autenticação ausente.' });
     };
 
     try {
         const sessionQuery = await db.query(`SELECT * FROM sessions WHERE token = $1;`, [token]);
+
+        if (sessionQuery.rows.length === 0) {
+            return res.status(401).send({ error: 'Token de autenticação inválido.' });
+        }
+
         const user = await db.query(`SELECT * FROM USERS WHERE id = $1;`, [sessionQuery.rows[0].userId]);
 
         const visitsTotal = await db.query(`SELECT SUM(visits) AS "visitCount" FROM urls WHERE "userId" = $1;`, [user.rows[0].id]);
