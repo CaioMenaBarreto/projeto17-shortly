@@ -8,11 +8,16 @@ export async function postUrlShorten(req, res) {
     token = token.replace(/"/g, '');
 
     if (!token) {
-        return res.status(401).send({ error: 'Token de autenticação ausente ou inválido.' });
+        return res.status(401).send({ error: 'Token de autenticação ausente.' });
     };
-
+    
     try {
         const user = await db.query(`SELECT * FROM sessions WHERE token = $1;`, [token]);
+
+        if (!user.rows.length || user.rows[0].token !== token) {
+            return res.status(401).send({ error: 'Token de autenticação inválido.' });
+        };
+
         const userId = user.rows[0].userId;
 
         const shortUrl = nanoid(8);
@@ -60,16 +65,16 @@ export async function getUrlOpen(req, res) {
         const urlQuery = await db.query(`SELECT * FROM urls WHERE shorturl = $1;`, [shortUrl]);
         const urlData = urlQuery.rows[0];
 
-        if(!urlData){
+        if (!urlData) {
             return res.status(404).send("ShortUrl inexistente.");
         };
 
         const newVisitCount = urlData.visits + 1;
         await db.query(`UPDATE urls SET visits = $1 WHERE id = $2;`, [newVisitCount, urlData.id]);
-        
+
         res.redirect(urlData.url);
-        
-    } catch(error) {
+
+    } catch (error) {
         console.log("Erro ao redirecionar para a Url:", error.message);
         res.status(500).send({ message: error.message });
     }
@@ -92,11 +97,11 @@ export async function deleteById(req, res) {
         const urlQuery = await db.query(`SELECT * FROM urls WHERE id = $1;`, [id]);
         const urlData = urlQuery.rows[0];
 
-        if(!urlData){
+        if (!urlData) {
             return res.status(404).send("ShortUrl inexistente.");
         };
 
-        if(userId !== urlData.userId) {
+        if (userId !== urlData.userId) {
             return res.status(401).send("Essa shortUrl pertence a outro usuário.")
         }
 
@@ -104,7 +109,7 @@ export async function deleteById(req, res) {
 
         res.sendStatus(204);
 
-    } catch(error) {
+    } catch (error) {
         console.log('Erro ao deletar uma Url:', error.message);
         res.status(500).send({ message: error.message });
     }

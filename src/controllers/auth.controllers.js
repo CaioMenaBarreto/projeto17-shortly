@@ -13,6 +13,12 @@ export async function signUp(req, res) {
     try {
         const hash = await bcrypt.hash(password, 10);
 
+        const usuarioExistente = await db.query(`SELECT * FROM users WHERE email = $1;`, [email]);
+
+        if(usuarioExistente.rows){
+            return res.status(409).send({ message: "O usuário já existe."});
+        };
+
         await db.query(`INSERT INTO users (username, email, password) VALUES ($1, $2, $3)`, [name, email, hash]);
         res.sendStatus(201);
 

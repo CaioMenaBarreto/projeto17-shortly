@@ -13,14 +13,29 @@ export async function getUserById(req, res) {
         const user = await db.query(`SELECT * FROM USERS WHERE id = $1;`, [sessionQuery.rows[0].userId]);
 
         const visitsTotal = await db.query(`SELECT SUM(visits) AS "visitCount" FROM urls WHERE "userId" = $1;`, [user.rows[0].id]);
-        const shortUrls = await db.query(`SELECT * FROM urls WHERE "userId" = $1 ORDER BY visits DESC;`, [user.rows[0].id]);
+        const shortUrls = await db.query(`SELECT * FROM urls WHERE "userId" = $1 ORDER BY id;`, [user.rows[0].id]);
+
+
+        const shortenedUrls = [];
+        for (let i = 0; i < shortUrls.rows.length; i++) {
+            const shortenedUrl = {
+                "id": shortUrls.rows[i].id,
+                "shortUrl": shortUrls.rows[i].shorturl,
+                "url": shortUrls.rows[i].url,
+                "visitCount": shortUrls.rows[i].visits
+            };
+            shortenedUrls.push(shortenedUrl);
+        }
 
         const result = {
             "id": user.rows[0].id,
             "name": user.rows[0].username,
             "visitCount": visitsTotal.rows[0].visitCount,
-            "shortenedUrls": shortUrls.rows
+            "shortenedUrls": shortenedUrls
         };
+        
+
+        console.log(result);
 
         res.status(200).send(result);
 
