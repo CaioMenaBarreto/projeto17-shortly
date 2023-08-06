@@ -15,7 +15,7 @@ export async function signUp(req, res) {
 
         const usuarioExistente = await db.query(`SELECT * FROM users WHERE email = $1;`, [email]);
 
-        if(usuarioExistente.rows){
+        if(usuarioExistente.rows.length > 0){
             return res.status(409).send({ message: "O usuário já existe."});
         };
 
